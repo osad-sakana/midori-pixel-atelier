@@ -15,7 +15,7 @@ const layerSchema = z.discriminatedUnion('type', [
     visible: z.boolean(),
     locked: z.boolean(),
     opacity: z.number().min(0).max(1),
-    assetId: z.string().min(1),
+    assetId: z.string().regex(/^[A-Za-z0-9_-]{1,64}$/),
   }),
 ])
 
