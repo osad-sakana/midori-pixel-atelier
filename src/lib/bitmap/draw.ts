@@ -28,7 +28,12 @@ const inBounds = (bmp: Bitmap, x: number, y: number): boolean =>
 export function getPixel(bmp: Bitmap, x: number, y: number): Rgba {
   if (!inBounds(bmp, x, y)) return [0, 0, 0, 0]
   const i = (y * bmp.width + x) * 4
-  return [bmp.data[i] ?? 0, bmp.data[i + 1] ?? 0, bmp.data[i + 2] ?? 0, bmp.data[i + 3] ?? 0]
+  return [
+    bmp.data[i] ?? 0,
+    bmp.data[i + 1] ?? 0,
+    bmp.data[i + 2] ?? 0,
+    bmp.data[i + 3] ?? 0,
+  ]
 }
 
 export function setPixel(bmp: Bitmap, x: number, y: number, color: Rgba): void {
@@ -43,7 +48,12 @@ export function setPixel(bmp: Bitmap, x: number, y: number, color: Rgba): void {
 const TRANSPARENT: Rgba = [0, 0, 0, 0]
 
 /** (cx, cy) を中心にブラシを1回押す。偶数サイズは左上寄りになる */
-export function stamp(bmp: Bitmap, cx: number, cy: number, brush: BrushOptions): void {
+export function stamp(
+  bmp: Bitmap,
+  cx: number,
+  cy: number,
+  brush: BrushOptions,
+): void {
   const size = Math.max(1, Math.floor(brush.size))
   const color = brush.erase ? TRANSPARENT : brush.color
   const start = -Math.floor(size / 2)
@@ -115,7 +125,12 @@ export function drawRect(
   }
 }
 
-const insideEllipse = (px: number, py: number, rx: number, ry: number): boolean => {
+const insideEllipse = (
+  px: number,
+  py: number,
+  rx: number,
+  ry: number,
+): boolean => {
   if (rx <= 0 || ry <= 0) return false
   return (px * px) / (rx * rx) + (py * py) / (ry * ry) <= 1
 }
@@ -155,7 +170,12 @@ const sameColor = (bmp: Bitmap, i: number, c: Rgba): boolean =>
   bmp.data[i + 3] === c[3]
 
 /** 4近傍のスキャンライン塗りつぶし。同色の連結領域を color で置き換える */
-export function floodFill(bmp: Bitmap, sx: number, sy: number, color: Rgba): void {
+export function floodFill(
+  bmp: Bitmap,
+  sx: number,
+  sy: number,
+  color: Rgba,
+): void {
   if (!inBounds(bmp, sx, sy)) return
   const target = getPixel(bmp, sx, sy)
   if (target.every((v, k) => v === color[k])) return
@@ -168,9 +188,14 @@ export function floodFill(bmp: Bitmap, sx: number, sy: number, color: Rgba): voi
     if (!sameColor(bmp, (y * width + x) * 4, target)) continue
 
     let left = x
-    while (left > 0 && sameColor(bmp, (y * width + left - 1) * 4, target)) left--
+    while (left > 0 && sameColor(bmp, (y * width + left - 1) * 4, target))
+      left--
     let right = x
-    while (right < width - 1 && sameColor(bmp, (y * width + right + 1) * 4, target)) right++
+    while (
+      right < width - 1 &&
+      sameColor(bmp, (y * width + right + 1) * 4, target)
+    )
+      right++
 
     for (let cx = left; cx <= right; cx++) setPixel(bmp, cx, y, color)
     for (const ny of [y - 1, y + 1]) {

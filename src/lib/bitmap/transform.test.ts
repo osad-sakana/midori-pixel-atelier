@@ -1,6 +1,14 @@
 import { describe, expect, it } from 'vitest'
 import { createBitmap } from './bitmap'
-import { blit, crop, flatten, flipH, flipV, rotate90, scaleNearest } from './transform'
+import {
+  blit,
+  crop,
+  flatten,
+  flipH,
+  flipV,
+  rotate90,
+  scaleNearest,
+} from './transform'
 import { getPixel, setPixel, type Rgba } from './draw'
 
 const RED: Rgba = [255, 0, 0, 255]

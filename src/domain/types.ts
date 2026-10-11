@@ -29,10 +29,18 @@ export type Costume = {
   readonly layers: readonly Layer[]
 }
 
+export type SheetSettings = {
+  readonly columns: number
+  readonly padding: number
+  readonly fps: number
+}
+
 export type Sprite = {
   readonly id: string
   readonly name: string
   readonly costumes: readonly Costume[]
+  /** スプライトシート出力の設定（未設定なら既定値） */
+  readonly sheet?: SheetSettings
 }
 
 export type Project = {

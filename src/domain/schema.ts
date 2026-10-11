@@ -29,10 +29,17 @@ const costumeSchema = z.object({
   layers: z.array(layerSchema).min(1),
 })
 
+const sheetSchema = z.object({
+  columns: z.number().int().min(1).max(256),
+  padding: z.number().int().min(0).max(64),
+  fps: z.number().min(1).max(60),
+})
+
 const spriteSchema = z.object({
   id: z.string().min(1),
   name: z.string(),
   costumes: z.array(costumeSchema),
+  sheet: sheetSchema.optional(),
 })
 
 const projectSchema = z.object({

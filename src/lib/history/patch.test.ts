@@ -15,7 +15,13 @@ describe('diffBitmaps', () => {
     setPixel(after, 3, 4, [1, 2, 3, 255])
     setPixel(after, 5, 6, [1, 2, 3, 255])
     const patch = diffBitmaps('x', before, after)
-    expect(patch).toMatchObject({ kind: 'rect', x: 3, y: 4, width: 3, height: 3 })
+    expect(patch).toMatchObject({
+      kind: 'rect',
+      x: 3,
+      y: 4,
+      width: 3,
+      height: 3,
+    })
     expect(patchBytes(patch!)).toBeLessThan(10 * 10 * 4)
   })
 

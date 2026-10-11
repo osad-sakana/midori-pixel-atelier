@@ -29,7 +29,8 @@ export function createHistory<S>(limitBytes: number): History<S> {
     push(entry) {
       redoStack = []
       undoStack = [...undoStack, entry]
-      while (undoStack.length > 1 && total() > limitBytes) undoStack = undoStack.slice(1)
+      while (undoStack.length > 1 && total() > limitBytes)
+        undoStack = undoStack.slice(1)
     },
     undo() {
       const entry = undoStack[undoStack.length - 1]

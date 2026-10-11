@@ -23,7 +23,11 @@ export type Patch = RectPatch | FullPatch
 
 export type Direction = 'before' | 'after'
 
-function sameBytes(a: Uint8ClampedArray, b: Uint8ClampedArray, offset: number): boolean {
+function sameBytes(
+  a: Uint8ClampedArray,
+  b: Uint8ClampedArray,
+  offset: number,
+): boolean {
   return (
     a[offset] === b[offset] &&
     a[offset + 1] === b[offset + 1] &&
@@ -53,7 +57,12 @@ export function diffBitmaps(
   after: Bitmap | undefined,
 ): Patch | null {
   if (!before && !after) return null
-  if (!before || !after || before.width !== after.width || before.height !== after.height) {
+  if (
+    !before ||
+    !after ||
+    before.width !== after.width ||
+    before.height !== after.height
+  ) {
     return { kind: 'full', assetId, before, after }
   }
 
@@ -63,7 +72,8 @@ export function diffBitmaps(
   let maxY = -1
   for (let y = 0; y < after.height; y++) {
     for (let x = 0; x < after.width; x++) {
-      if (sameBytes(before.data, after.data, (y * after.width + x) * 4)) continue
+      if (sameBytes(before.data, after.data, (y * after.width + x) * 4))
+        continue
       if (x < minX) minX = x
       if (x > maxX) maxX = x
       if (y < minY) minY = y
@@ -100,12 +110,18 @@ export function applyPatch(
   const source = patch[direction]
   for (let row = 0; row < patch.height; row++) {
     const to = ((patch.y + row) * bmp.width + patch.x) * 4
-    bmp.data.set(source.subarray(row * patch.width * 4, (row + 1) * patch.width * 4), to)
+    bmp.data.set(
+      source.subarray(row * patch.width * 4, (row + 1) * patch.width * 4),
+      to,
+    )
   }
   return bmp
 }
 
 export function patchBytes(patch: Patch): number {
-  if (patch.kind === 'rect') return patch.before.byteLength + patch.after.byteLength
-  return (patch.before?.data.byteLength ?? 0) + (patch.after?.data.byteLength ?? 0)
+  if (patch.kind === 'rect')
+    return patch.before.byteLength + patch.after.byteLength
+  return (
+    (patch.before?.data.byteLength ?? 0) + (patch.after?.data.byteLength ?? 0)
+  )
 }
