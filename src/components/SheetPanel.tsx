@@ -1,3 +1,4 @@
+import { Film, Image, Package, Scissors } from 'lucide-react'
 import { useEffect, useMemo, useRef, useState } from 'react'
 import {
   buildSheet,
@@ -9,6 +10,8 @@ import {
 import { planSpriteExport } from '../lib/export/exportPlan'
 import { drawBitmap } from '../platform/browser'
 import { getActive, updateSheet, useEditor } from '../state/editorStore'
+import { Button } from '../ui/Button'
+import { NumberField } from '../ui/NumberField'
 import { BitmapCanvas } from './BitmapCanvas'
 import { costumesKey } from './useComposed'
 
@@ -99,136 +102,128 @@ export function SheetPanel() {
 
   const sliceW = Number(slice.w || costume.width)
   const sliceH = Number(slice.h || costume.height)
+  const set = (patch: Partial<typeof settings>) =>
+    updateSheet({ ...settings, ...patch })
 
   return (
     <div className="panel-body">
-      <h3>シートの設定</h3>
-      <div className="grid-form">
-        <label>
-          1行の枚数
-          <input
-            type="number"
+      <section className="card">
+        <h3>プレビュー</h3>
+        <div className="preview-row">
+          <figure className="preview-box">
+            <BitmapCanvas bitmap={sheet} className="checker" maxSize={200} />
+            <figcaption>スプライトシート</figcaption>
+          </figure>
+          <figure className="preview-box">
+            <AnimationPreview
+              sheetCanvas={sheetCanvas}
+              frames={layout.frames}
+              width={layout.frameWidth}
+              height={layout.frameHeight}
+              fps={settings.fps}
+            />
+            <figcaption>アニメーション</figcaption>
+          </figure>
+        </div>
+        <p className="stat-line">
+          <span>{layout.frames.length} 枚</span>
+          <span>
+            1枚 {layout.frameWidth}×{layout.frameHeight}px
+          </span>
+          <span>
+            全体 {layout.sheetWidth}×{layout.sheetHeight}px
+          </span>
+        </p>
+      </section>
+
+      <section className="card">
+        <h3>シートの設定</h3>
+        <div className="field-row three">
+          <NumberField
+            label="1行の枚数"
             min={1}
             max={64}
             value={settings.columns}
-            onChange={(e) =>
-              updateSheet({ ...settings, columns: Number(e.target.value) })
-            }
+            onChange={(v) => set({ columns: Number(v) })}
           />
-        </label>
-        <label>
-          すき間(px)
-          <input
-            type="number"
+          <NumberField
+            label="すき間(px)"
             min={0}
             max={64}
             value={settings.padding}
-            onChange={(e) =>
-              updateSheet({ ...settings, padding: Number(e.target.value) })
-            }
+            onChange={(v) => set({ padding: Number(v) })}
           />
-        </label>
-        <label>
-          速さ(fps)
-          <input
-            type="number"
+          <NumberField
+            label="速さ(fps)"
             min={1}
             max={60}
             value={settings.fps}
-            onChange={(e) =>
-              updateSheet({ ...settings, fps: Number(e.target.value) })
-            }
+            onChange={(v) => set({ fps: Number(v) })}
           />
-        </label>
-      </div>
-      <p className="hint">
-        1枚の大きさ {layout.frameWidth}×{layout.frameHeight}px ・{' '}
-        {layout.frames.length} 枚 ・ シート全体 {layout.sheetWidth}×
-        {layout.sheetHeight}px
-      </p>
-
-      <h3>プレビュー</h3>
-      <div className="preview-row">
-        <div className="preview-box">
-          <BitmapCanvas bitmap={sheet} className="checker" maxSize={240} />
-          <span>スプライトシート</span>
         </div>
-        <div className="preview-box">
-          <AnimationPreview
-            sheetCanvas={sheetCanvas}
-            frames={layout.frames}
-            width={layout.frameWidth}
-            height={layout.frameHeight}
-            fps={settings.fps}
-          />
-          <span>アニメーション</span>
+      </section>
+
+      <section className="card">
+        <h3>書き出し</h3>
+        <div className="stack">
+          <Button
+            variant="primary"
+            icon={Package}
+            block
+            onClick={() => void downloadSpriteBundle()}
+          >
+            素材セット（ZIP）をダウンロード
+          </Button>
+          <Button icon={Film} block onClick={() => void downloadSheetPng()}>
+            シート画像（{plan.sheetFile}）
+          </Button>
+          <Button icon={Image} block onClick={() => void downloadCostumePng()}>
+            いまのコスチュームだけ（PNG）
+          </Button>
         </div>
-      </div>
+        <p className="hint">
+          素材セットには、各コスチュームのPNGとシートPNGが入っています。
+        </p>
+      </section>
 
-      <h3>ダウンロード</h3>
-      <div className="stack">
-        <button
-          type="button"
-          className="primary"
-          onClick={() => void downloadSpriteBundle()}
-        >
-          素材セット（ZIP）をダウンロード
-        </button>
-        <button type="button" onClick={() => void downloadSheetPng()}>
-          シート画像（{plan.sheetFile}）
-        </button>
-        <button type="button" onClick={() => void downloadCostumePng()}>
-          いまのコスチュームだけ（PNG）
-        </button>
-      </div>
-      <p className="hint">
-        素材セットには、各コスチュームのPNGとシートPNGが入っています。
-      </p>
-
-      <h3>シート画像から切り出す</h3>
-      <div className="grid-form">
-        <label>
-          1枚の幅
-          <input
-            type="number"
+      <section className="card">
+        <h3>シート画像から切り出す</h3>
+        <div className="field-row three">
+          <NumberField
+            label="1枚の幅"
             min={1}
             placeholder={String(costume.width)}
             value={slice.w}
-            onChange={(e) => setSlice({ ...slice, w: e.target.value })}
+            onChange={(v) => setSlice({ ...slice, w: v })}
           />
-        </label>
-        <label>
-          1枚の高さ
-          <input
-            type="number"
+          <NumberField
+            label="1枚の高さ"
             min={1}
             placeholder={String(costume.height)}
             value={slice.h}
-            onChange={(e) => setSlice({ ...slice, h: e.target.value })}
+            onChange={(v) => setSlice({ ...slice, h: v })}
           />
-        </label>
-        <label>
-          すき間(px)
-          <input
-            type="number"
+          <NumberField
+            label="すき間(px)"
             min={0}
             value={slice.padding}
-            onChange={(e) => setSlice({ ...slice, padding: e.target.value })}
+            onChange={(v) => setSlice({ ...slice, padding: v })}
           />
-        </label>
-      </div>
-      <button
-        type="button"
-        onClick={() =>
-          void importSpriteSheet({
-            cellWidth: sliceW,
-            cellHeight: sliceH,
-            padding: Number(slice.padding || 0),
-          })
-        }
-      >
-        画像を選んで切り出す
-      </button>
+        </div>
+        <Button
+          icon={Scissors}
+          block
+          onClick={() =>
+            void importSpriteSheet({
+              cellWidth: sliceW,
+              cellHeight: sliceH,
+              padding: Number(slice.padding || 0),
+            })
+          }
+        >
+          画像を選んで切り出す
+        </Button>
+      </section>
     </div>
   )
 }

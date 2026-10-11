@@ -41,6 +41,7 @@ pnpm build
 
 ## 設計メモ
 
+- UI は React + [Radix UI](https://www.radix-ui.com/)（アクセシブルな部品）+ [lucide](https://lucide.dev/)（アイコン）で、スタイルは `src/styles/` のデザイントークン（ライト/ダーク対応）にまとめています。フォントは Google Fonts の BIZ UDPゴシックです。
 - ピクセルの正データは `BitmapStore`（型付き配列）が持ち、Canvas は表示専用です。Zustand には `revision` だけを持たせます。
 - コスチュームは `layers[]` を持ち、既定ではアンチエイリアスなし（ピクセルアート向け）です。
 - Undo/Redo は、変更した矩形だけを記録する差分パッチ方式で、上限は手数ではなくバイト数です。

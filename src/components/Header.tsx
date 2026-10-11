@@ -1,13 +1,24 @@
+import {
+  Download,
+  FilePlus2,
+  FolderOpen,
+  Redo2,
+  Sparkles,
+  Undo2,
+} from 'lucide-react'
 import { openProjectFile, saveProjectFile } from '../app/actions'
 import { newProject, redo, rename, undo, useEditor } from '../state/editorStore'
 import { useSaveStatus } from '../state/autosave'
+import { Button } from '../ui/Button'
+import { ConfirmDialog } from '../ui/ConfirmDialog'
+import { IconButton } from '../ui/IconButton'
 import { EditableText } from './EditableText'
 
 const STATUS_LABEL = {
-  idle: '',
+  idle: 'ブラウザに自動保存されます',
   saving: '自動保存中…',
   saved: 'ブラウザに自動保存しました',
-  error: '自動保存に失敗しました（「保存」でファイルに残してください）',
+  error: '自動保存できませんでした。「保存」でファイルに残してください',
 } as const
 
 export function Header() {
@@ -16,59 +27,71 @@ export function Header() {
   const canRedo = useEditor((s) => s.canRedo)
   const status = useSaveStatus((s) => s.status)
 
-  const confirmNew = (): void => {
-    if (
-      window.confirm(
-        '新しいプロジェクトを作ります。いまの内容は消えます（先に「保存」しておくと安心です）。',
-      )
-    ) {
-      newProject()
-    }
-  }
-
   return (
     <header className="app-header">
-      <h1>pygame素材メーカー</h1>
-      <EditableText
-        className="project-name"
-        label="プロジェクト名"
-        value={name}
-        onCommit={rename.project}
-      />
+      <div className="brand">
+        <span className="brand-mark" aria-hidden>
+          <Sparkles size={18} strokeWidth={2.2} />
+        </span>
+        <h1>pygame素材メーカー</h1>
+      </div>
+
+      <div className="project-name-wrap">
+        <EditableText
+          className="project-name"
+          label="プロジェクト名"
+          value={name}
+          onCommit={rename.project}
+        />
+        <span className={`save-status ${status}`} role="status">
+          <span className="save-dot" aria-hidden />
+          {STATUS_LABEL[status]}
+        </span>
+      </div>
+
       <div className="header-actions">
-        <button type="button" onClick={confirmNew}>
-          新規
-        </button>
-        <button type="button" onClick={() => void openProjectFile()}>
+        <IconButton
+          icon={Undo2}
+          label="元に戻す"
+          shortcut="Ctrl+Z"
+          onClick={undo}
+          disabled={!canUndo}
+        />
+        <IconButton
+          icon={Redo2}
+          label="やり直す"
+          shortcut="Ctrl+Shift+Z"
+          onClick={redo}
+          disabled={!canRedo}
+        />
+        <span className="divider" aria-hidden />
+        <ConfirmDialog
+          trigger={
+            <button type="button" className="btn ghost">
+              <FilePlus2 size={16} aria-hidden />
+              <span>新規</span>
+            </button>
+          }
+          title="新しいプロジェクトを作りますか？"
+          description="いまの内容は消えます。残したいときは、先に「保存」でファイルにしておくと安心です。"
+          confirmLabel="新しく作る"
+          onConfirm={newProject}
+        />
+        <Button
+          variant="ghost"
+          icon={FolderOpen}
+          onClick={() => void openProjectFile()}
+        >
           開く
-        </button>
-        <button
-          type="button"
-          className="primary"
+        </Button>
+        <Button
+          variant="primary"
+          icon={Download}
           onClick={() => void saveProjectFile()}
         >
           保存（ZIP）
-        </button>
-        <button
-          type="button"
-          onClick={undo}
-          disabled={!canUndo}
-          title="元に戻す（Ctrl+Z）"
-        >
-          ↶ 戻す
-        </button>
-        <button
-          type="button"
-          onClick={redo}
-          disabled={!canRedo}
-          title="やり直す（Ctrl+Shift+Z）"
-        >
-          ↷ やり直す
-        </button>
+        </Button>
       </div>
-      <span className="save-status" role="status">
-        {STATUS_LABEL[status]}
-      </span>
     </header>
   )
 }

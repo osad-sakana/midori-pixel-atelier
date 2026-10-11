@@ -1,12 +1,29 @@
+import { Grid3x3, ZoomIn, ZoomOut } from 'lucide-react'
 import { useEffect, useRef, useState } from 'react'
 import { composeCostume } from '../editor/compose'
 import { renderFloating, type Floating } from '../editor/floating'
 import { pointerDown, pointerMove, pointerUp } from '../editor/gesture'
 import { drawBitmap } from '../platform/browser'
-import { bitmaps, getActive, setZoom, useEditor } from '../state/editorStore'
+import {
+  bitmaps,
+  getActive,
+  setToolOptions,
+  setZoom,
+  useEditor,
+} from '../state/editorStore'
+import { IconButton } from '../ui/IconButton'
 
 const GRID_MIN_ZOOM = 6
 const HANDLE_PX = 10
+
+/** グリッド線の色。テーマ（ライト/ダーク）に合わせて CSS の値を使う */
+function gridColor(): string {
+  return (
+    getComputedStyle(document.documentElement)
+      .getPropertyValue('--grid-line')
+      .trim() || 'rgba(0,0,0,0.18)'
+  )
+}
 
 function drawOverlay(
   canvas: HTMLCanvasElement,
@@ -27,7 +44,7 @@ function drawOverlay(
   ctx.clearRect(0, 0, canvas.width, canvas.height)
 
   if (opts.grid && zoom >= GRID_MIN_ZOOM) {
-    ctx.strokeStyle = 'rgba(0,0,0,0.18)'
+    ctx.strokeStyle = gridColor()
     ctx.lineWidth = 1
     ctx.beginPath()
     for (let x = 1; x < width; x++) {
@@ -47,7 +64,7 @@ function drawOverlay(
     ctx.strokeStyle = '#fff'
     ctx.strokeRect(x * zoom, y * zoom, w * zoom, h * zoom)
     ctx.setLineDash([6, 4])
-    ctx.strokeStyle = '#4d97ff'
+    ctx.strokeStyle = '#6366f1'
     ctx.strokeRect(x * zoom, y * zoom, w * zoom, h * zoom)
     ctx.restore()
   }
@@ -76,7 +93,7 @@ function drawOverlay(
       const cx = (p.x + 0.5) * zoom
       const cy = (p.y + 0.5) * zoom
       ctx.fillStyle = '#fff'
-      ctx.strokeStyle = '#4d97ff'
+      ctx.strokeStyle = '#6366f1'
       ctx.lineWidth = 2
       ctx.fillRect(cx - size / 2, cy - size / 2, size, size)
       ctx.strokeRect(cx - size / 2, cy - size / 2, size, size)
@@ -199,16 +216,43 @@ export function EditorCanvas() {
           />
         </div>
       </div>
-      <p className="canvas-status">
-        {width} × {height} px ・ 拡大 {zoom}x
-        {cursor &&
-        cursor.x >= 0 &&
-        cursor.y >= 0 &&
-        cursor.x < width &&
-        cursor.y < height
-          ? ` ・ (${cursor.x}, ${cursor.y})`
-          : ''}
-      </p>
+      <div className="canvas-hud" role="group" aria-label="表示">
+        <IconButton
+          icon={ZoomOut}
+          label="縮小"
+          shortcut="-"
+          size="sm"
+          onClick={() => setZoom(zoom - 1)}
+        />
+        <span className="hud-zoom">{zoom}x</span>
+        <IconButton
+          icon={ZoomIn}
+          label="拡大"
+          shortcut="+"
+          size="sm"
+          onClick={() => setZoom(zoom + 1)}
+        />
+        <IconButton
+          icon={Grid3x3}
+          label="グリッド"
+          size="sm"
+          pressed={showGrid}
+          onClick={() => setToolOptions({ showGrid: !showGrid })}
+        />
+        <span className="divider" aria-hidden />
+        <span className="hud-text">
+          {width} × {height} px
+        </span>
+        <span className="hud-text hud-cursor">
+          {cursor &&
+          cursor.x >= 0 &&
+          cursor.y >= 0 &&
+          cursor.x < width &&
+          cursor.y < height
+            ? `(${cursor.x}, ${cursor.y})`
+            : ''}
+        </span>
+      </div>
     </div>
   )
 }

@@ -43,10 +43,10 @@ test('ブラシで描け、Undo/Redo できる', async ({ page }) => {
   expect(a).toBe(255)
   expect([r, g, b]).not.toEqual([0, 0, 0])
 
-  await page.getByRole('button', { name: /戻す/ }).click()
+  await page.getByRole('button', { name: '元に戻す' }).click()
   expect((await pixelAt(page, 5, 2))[3]).toBe(0)
 
-  await page.getByRole('button', { name: /やり直す/ }).click()
+  await page.getByRole('button', { name: 'やり直す' }).click()
   expect((await pixelAt(page, 5, 2))[3]).toBe(255)
 })
 
@@ -62,17 +62,17 @@ test('図形は確定するまで動かせる', async ({ page }) => {
 
 test('レイヤーを追加・非表示にできる', async ({ page }) => {
   await dragOnCanvas(page, [2, 2], [10, 2])
-  await page.getByRole('button', { name: '＋ 追加' }).click()
+  await page.getByRole('button', { name: 'レイヤーを追加' }).click()
   await expect(page.getByLabel('レイヤー名')).toHaveCount(2)
   await expect(page.getByLabel('レイヤー名').first()).toHaveValue('レイヤー2')
-  await page.getByLabel('レイヤー1 を表示').uncheck()
+  await page.getByRole('button', { name: 'レイヤー1 の表示' }).click()
   expect((await pixelAt(page, 5, 2))[3]).toBe(0)
-  await page.getByLabel('レイヤー1 を表示').check()
+  await page.getByRole('button', { name: 'レイヤー1 の表示' }).click()
   expect((await pixelAt(page, 5, 2))[3]).toBe(255)
 })
 
 test('コスチュームを追加するとシートが2枚になる', async ({ page }) => {
-  await page.getByRole('button', { name: '＋ 空のコスチューム' }).click()
+  await page.getByRole('button', { name: '空のコスチュームを追加' }).click()
   await page.getByRole('tab', { name: 'シート' }).click()
   await expect(page.getByText('2 枚')).toBeVisible()
 })
@@ -86,8 +86,8 @@ test('プロジェクトを ZIP で保存して読み込める', async ({ page }
   const path = await file.path()
 
   // 新規にしてから読み込み直す
-  page.once('dialog', (d) => void d.accept())
   await page.getByRole('button', { name: '新規' }).click()
+  await page.getByRole('button', { name: '新しく作る' }).click()
   expect((await pixelAt(page, 5, 2))[3]).toBe(0)
 
   const chooser = page.waitForEvent('filechooser')

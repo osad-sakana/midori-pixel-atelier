@@ -1,3 +1,11 @@
+import {
+  ArrowLeft,
+  ArrowRight,
+  Copy,
+  ImagePlus,
+  Plus,
+  Trash2,
+} from 'lucide-react'
 import { useState } from 'react'
 import { importImage } from '../app/actions'
 import {
@@ -12,10 +20,40 @@ import {
   selectSprite,
   useEditor,
 } from '../state/editorStore'
-import type { Costume } from '../domain/types'
+import type { Costume, Sprite } from '../domain/types'
+import { Button } from '../ui/Button'
+import { IconButton } from '../ui/IconButton'
 import { BitmapCanvas } from './BitmapCanvas'
 import { EditableText } from './EditableText'
 import { useComposed } from './useComposed'
+
+function SpriteRow(props: { sprite: Sprite; selected: boolean }) {
+  const { sprite, selected } = props
+  const first = sprite.costumes[0]
+  return (
+    <li className={`sprite-row ${selected ? 'selected' : ''}`}>
+      <button
+        type="button"
+        className="sprite-pick"
+        aria-label={`スプライト ${sprite.name} を選ぶ`}
+        aria-pressed={selected}
+        onClick={() => selectSprite(sprite.id)}
+      >
+        {first && <SpriteThumb costume={first} />}
+      </button>
+      <EditableText
+        label={`スプライト名（${sprite.name}）`}
+        value={sprite.name}
+        onCommit={(name) => rename.sprite(sprite.id, name)}
+      />
+    </li>
+  )
+}
+
+function SpriteThumb(props: { costume: Costume }) {
+  const bitmap = useComposed(props.costume)
+  return <BitmapCanvas bitmap={bitmap} className="checker" maxSize={32} />
+}
 
 function CostumeCard(props: {
   costume: Costume
@@ -35,7 +73,7 @@ function CostumeCard(props: {
         onClick={() => selectCostume(costume.id)}
       >
         <span className="costume-number">{index + 1}</span>
-        <BitmapCanvas bitmap={bitmap} className="checker" maxSize={96} />
+        <BitmapCanvas bitmap={bitmap} className="checker" maxSize={88} />
       </button>
       <EditableText
         label={`コスチューム${index + 1}の名前`}
@@ -44,32 +82,34 @@ function CostumeCard(props: {
       />
       {selected && (
         <div className="card-actions">
-          <button
-            type="button"
+          <IconButton
+            icon={ArrowLeft}
+            label="前へ"
+            size="sm"
             onClick={() => moveCostume(index, index - 1)}
             disabled={index === 0}
-            aria-label="前へ"
-          >
-            ←
-          </button>
-          <button
-            type="button"
+          />
+          <IconButton
+            icon={ArrowRight}
+            label="後ろへ"
+            size="sm"
             onClick={() => moveCostume(index, index + 1)}
             disabled={index === count - 1}
-            aria-label="後ろへ"
-          >
-            →
-          </button>
-          <button type="button" onClick={() => duplicateCostume(costume.id)}>
-            複製
-          </button>
-          <button
-            type="button"
+          />
+          <IconButton
+            icon={Copy}
+            label="複製"
+            size="sm"
+            onClick={() => duplicateCostume(costume.id)}
+          />
+          <IconButton
+            icon={Trash2}
+            label="削除"
+            size="sm"
+            tone="danger"
             onClick={() => deleteCostume(costume.id)}
             disabled={count <= 1}
-          >
-            削除
-          </button>
+          />
         </div>
       )}
     </li>
@@ -87,46 +127,38 @@ export function SpritePanel() {
 
   return (
     <aside className="sprite-panel" aria-label="スプライトとコスチューム">
-      <section>
-        <h2>スプライト</h2>
+      <section className="side-section">
+        <header className="section-head">
+          <h2>スプライト</h2>
+          <div className="section-actions">
+            <IconButton
+              icon={Plus}
+              label="スプライトを追加"
+              size="sm"
+              onClick={addSprite}
+            />
+            <IconButton
+              icon={Trash2}
+              label="スプライトを削除"
+              size="sm"
+              tone="danger"
+              onClick={() => deleteSprite(spriteId)}
+              disabled={project.sprites.length <= 1}
+            />
+          </div>
+        </header>
         <ul className="sprite-list">
           {project.sprites.map((s) => (
-            <li key={s.id}>
-              {s.id === spriteId ? (
-                <EditableText
-                  label="スプライト名"
-                  className="sprite-chip selected"
-                  value={s.name}
-                  onCommit={(n) => rename.sprite(s.id, n)}
-                />
-              ) : (
-                <button
-                  type="button"
-                  className="sprite-chip"
-                  onClick={() => selectSprite(s.id)}
-                >
-                  {s.name}
-                </button>
-              )}
-            </li>
+            <SpriteRow key={s.id} sprite={s} selected={s.id === spriteId} />
           ))}
         </ul>
-        <div className="row">
-          <button type="button" onClick={addSprite}>
-            ＋ スプライト
-          </button>
-          <button
-            type="button"
-            onClick={() => deleteSprite(spriteId)}
-            disabled={project.sprites.length <= 1}
-          >
-            削除
-          </button>
-        </div>
       </section>
 
-      <section>
-        <h2>コスチューム</h2>
+      <section className="side-section grow">
+        <header className="section-head">
+          <h2>コスチューム</h2>
+          <span className="count-badge">{sprite?.costumes.length ?? 0}</span>
+        </header>
         <ul className="costume-list">
           {sprite?.costumes.map((c, i) => (
             <CostumeCard
@@ -138,19 +170,13 @@ export function SpritePanel() {
             />
           ))}
         </ul>
-        <div className="stack">
-          <button
-            type="button"
-            onClick={() =>
-              newSize === 'current'
-                ? addCostume()
-                : addCostume(newSize, newSize)
-            }
-          >
-            ＋ 空のコスチューム
-          </button>
+      </section>
+
+      <footer className="side-footer">
+        <label className="field">
+          <span className="field-label">新しいコスチュームの大きさ</span>
           <select
-            aria-label="新しいコスチュームのサイズ"
+            className="input"
             value={String(newSize)}
             onChange={(e) =>
               setNewSize(
@@ -160,18 +186,32 @@ export function SpritePanel() {
               )
             }
           >
-            <option value="current">いまと同じサイズ</option>
+            <option value="current">いまと同じ</option>
             {SIZES.map((n) => (
               <option key={n} value={n}>
-                {n}×{n}
+                {n} × {n}
               </option>
             ))}
           </select>
-          <button type="button" onClick={() => void importImage()}>
-            画像ファイルを読み込む
-          </button>
-        </div>
-      </section>
+        </label>
+        <Button
+          icon={Plus}
+          block
+          onClick={() =>
+            newSize === 'current' ? addCostume() : addCostume(newSize, newSize)
+          }
+        >
+          空のコスチュームを追加
+        </Button>
+        <Button
+          icon={ImagePlus}
+          block
+          variant="ghost"
+          onClick={() => void importImage()}
+        >
+          画像ファイルを読み込む
+        </Button>
+      </footer>
     </aside>
   )
 }
