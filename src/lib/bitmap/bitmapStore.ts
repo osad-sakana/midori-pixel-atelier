@@ -7,7 +7,10 @@ export type BitmapStore = {
   get(assetId: string): Bitmap | undefined
   /** 複製に対して変更を加え、結果で差し替える（取得済みの旧参照は不変のまま） */
   update(assetId: string, mutate: (draft: Bitmap) => void): void
+  /** 画像を丸ごと差し替える（描画中のドラフトや、サイズ変更後の画像の登録に使う） */
+  replace(assetId: string, bitmap: Bitmap): void
   delete(assetId: string): void
+  clear(): void
   revision(assetId: string): number
   subscribe(listener: () => void): () => void
 }
@@ -37,6 +40,15 @@ export function createBitmapStore(): BitmapStore {
       const draft = cloneBitmap(entry.bitmap)
       mutate(draft)
       entries.set(assetId, { bitmap: draft, revision: entry.revision + 1 })
+      notify()
+    },
+    replace(assetId, bitmap) {
+      const previous = entries.get(assetId)
+      entries.set(assetId, { bitmap, revision: (previous?.revision ?? -1) + 1 })
+      notify()
+    },
+    clear() {
+      entries.clear()
       notify()
     },
     delete(assetId) {

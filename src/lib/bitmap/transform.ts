@@ -1,5 +1,5 @@
 import { createBitmap, type Bitmap } from './bitmap'
-import { getPixel, setPixel, type Rgba } from './draw'
+import { getPixel, setPixel } from './draw'
 
 export function flipH(src: Bitmap): Bitmap {
   const out = createBitmap(src.width, src.height)
@@ -64,30 +64,10 @@ export function scaleNearest(
   return out
 }
 
-/** ストレートアルファの "over" 合成。dst の (x, y) に src のピクセルを重ねる */
-function overPixel(
-  dst: Bitmap,
-  x: number,
-  y: number,
-  src: Rgba,
-  opacity: number,
-): void {
-  const sa = (src[3] / 255) * opacity
-  if (sa <= 0) return
-  const [dr, dg, db, dA] = getPixel(dst, x, y)
-  const da = dA / 255
-  const oa = sa + da * (1 - sa)
-  const mix = (s: number, d: number): number =>
-    Math.round((s * sa + d * da * (1 - sa)) / oa)
-  setPixel(dst, x, y, [
-    mix(src[0], dr),
-    mix(src[1], dg),
-    mix(src[2], db),
-    Math.round(oa * 255),
-  ])
-}
-
-/** src を dst の (dx, dy) に重ねる。dst を直接書き換える */
+/**
+ * src を dst の (dx, dy) に重ねる（ストレートアルファの "over" 合成）。dst を直接書き換える。
+ * 描画のたびに呼ばれるので、ピクセルごとの配列確保を避けて添字で直接処理する。
+ */
 export function blit(
   dst: Bitmap,
   src: Bitmap,
@@ -95,9 +75,28 @@ export function blit(
   dy: number,
   opacity = 1,
 ): void {
-  for (let y = 0; y < src.height; y++) {
-    for (let x = 0; x < src.width; x++) {
-      overPixel(dst, dx + x, dy + y, getPixel(src, x, y), opacity)
+  const d = dst.data
+  const s = src.data
+  for (let y = Math.max(0, -dy); y < src.height && dy + y < dst.height; y++) {
+    for (let x = Math.max(0, -dx); x < src.width && dx + x < dst.width; x++) {
+      const si = (y * src.width + x) * 4
+      const sa = ((s[si + 3] as number) / 255) * opacity
+      if (sa <= 0) continue
+      const di = ((dy + y) * dst.width + dx + x) * 4
+      if (sa >= 1) {
+        d[di] = s[si] as number
+        d[di + 1] = s[si + 1] as number
+        d[di + 2] = s[si + 2] as number
+        d[di + 3] = 255
+        continue
+      }
+      const da = (d[di + 3] as number) / 255
+      const oa = sa + da * (1 - sa)
+      const k = da * (1 - sa)
+      d[di] = ((s[si] as number) * sa + (d[di] as number) * k) / oa
+      d[di + 1] = ((s[si + 1] as number) * sa + (d[di + 1] as number) * k) / oa
+      d[di + 2] = ((s[si + 2] as number) * sa + (d[di + 2] as number) * k) / oa
+      d[di + 3] = oa * 255
     }
   }
 }

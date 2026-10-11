@@ -69,4 +69,24 @@ describe('BitmapStore', () => {
     store.delete('a')
     expect(store.get('a')).toBeUndefined()
   })
+
+  it('replace は渡した画像をそのまま登録し、revision を進める', () => {
+    const store = createBitmapStore()
+    const bmp = createBitmap(2, 2)
+    store.replace('a', bmp)
+    expect(store.get('a')).toBe(bmp)
+    const r = store.revision('a')
+    store.replace('a', createBitmap(3, 3))
+    expect(store.revision('a')).toBe(r + 1)
+    expect(store.get('a')?.width).toBe(3)
+  })
+
+  it('clear で全部消える', () => {
+    const store = createBitmapStore()
+    store.create('a', 1, 1)
+    store.create('b', 1, 1)
+    store.clear()
+    expect(store.get('a')).toBeUndefined()
+    expect(store.get('b')).toBeUndefined()
+  })
 })
