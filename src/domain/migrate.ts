@@ -10,11 +10,19 @@ function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === 'object' && value !== null && !Array.isArray(value)
 }
 
-export function migrateToCurrent(input: unknown, currentVersion: number): unknown {
-  if (!isRecord(input)) throw new Error('プロジェクトデータの形式が正しくありません')
+export function migrateToCurrent(
+  input: unknown,
+  currentVersion: number,
+): unknown {
+  if (!isRecord(input))
+    throw new Error('プロジェクトデータの形式が正しくありません')
 
   const version = input.schemaVersion
-  if (typeof version !== 'number' || !Number.isInteger(version) || version < 1) {
+  if (
+    typeof version !== 'number' ||
+    !Number.isInteger(version) ||
+    version < 1
+  ) {
     throw new Error('プロジェクトのバージョンが不正です')
   }
   if (version > currentVersion) {

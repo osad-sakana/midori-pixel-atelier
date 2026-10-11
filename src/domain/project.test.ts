@@ -74,7 +74,9 @@ describe('parseProject', () => {
       sprites: [
         {
           ...createSprite('s'),
-          costumes: [{ ...createCostume({ name: 'c', width: 8, height: 8 }), width: 0 }],
+          costumes: [
+            { ...createCostume({ name: 'c', width: 8, height: 8 }), width: 0 },
+          ],
         },
       ],
     }
@@ -82,7 +84,10 @@ describe('parseProject', () => {
   })
 
   it('未来のスキーマ版は拒否する', () => {
-    const project = { ...createProject('p'), schemaVersion: CURRENT_SCHEMA_VERSION + 1 }
+    const project = {
+      ...createProject('p'),
+      schemaVersion: CURRENT_SCHEMA_VERSION + 1,
+    }
     expect(() => parseProject(project)).toThrow(/新しい/)
   })
 })
