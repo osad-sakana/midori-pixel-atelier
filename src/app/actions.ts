@@ -1,8 +1,7 @@
-import { zipSync, type Zippable, strToU8 } from 'fflate'
+import { zipSync, type Zippable } from 'fflate'
 import { composeCostume } from '../editor/compose'
 import type { Bitmap } from '../lib/bitmap/bitmap'
-import { buildCodeInput, planSpriteExport } from '../lib/export/exportPlan'
-import { generatePygameCode } from '../lib/export/pygameCode'
+import { planSpriteExport } from '../lib/export/exportPlan'
 import { renderSheet, sliceSheet } from '../lib/export/spritesheet'
 import { toSafeName } from '../lib/naming'
 import {
@@ -148,8 +147,8 @@ export const downloadSheetPng = (): Promise<void> =>
     downloadBytes(currentPlan().sheetFile, bytes, 'image/png')
   })
 
-/** pygame ですぐ動かせる素材セット: 各コスチュームPNG + シートPNG + main.py */
-export const downloadSpriteBundle = (scale: number): Promise<void> =>
+/** 素材セット: 各コスチュームのPNG + シートPNG */
+export const downloadSpriteBundle = (): Promise<void> =>
   guarded(async () => {
     commitFloating()
     const plan = currentPlan()
@@ -159,28 +158,9 @@ export const downloadSpriteBundle = (scale: number): Promise<void> =>
       files[file] = [await pngCodec.encode(frames[i] as Bitmap), { level: 0 }]
     }
     files[plan.sheetFile] = [await pngCodec.encode(buildSheet()), { level: 0 }]
-    files['main.py'] = strToU8(
-      generatePygameCode(buildCodeInput(plan, 0, scale), 'sheet'),
-    )
     downloadBytes(
       `${plan.spriteName}_assets.zip`,
       zipSync(files),
       'application/zip',
     )
   })
-
-export function codeFor(
-  mode: 'single' | 'sheet' | 'class',
-  scale: number,
-): string {
-  const { sprite, costume } = getActive()
-  const index = sprite.costumes.findIndex((c) => c.id === costume.id)
-  return generatePygameCode(buildCodeInput(currentPlan(), index, scale), mode)
-}
-
-export const downloadCodeFile = (code: string): void =>
-  downloadBytes(
-    'main.py',
-    new TextEncoder().encode(code),
-    'text/x-python;charset=utf-8',
-  )

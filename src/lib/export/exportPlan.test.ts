@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { createCostume, createSprite } from '../../domain/factory'
-import { buildCodeInput, planSpriteExport } from './exportPlan'
+import { planSpriteExport } from './exportPlan'
 
 const sprite = (name: string, costumeNames: string[], size = 16) => ({
   ...createSprite(name),
@@ -48,26 +48,5 @@ describe('planSpriteExport', () => {
 
   it('コスチュームが無いスプライトはエラー', () => {
     expect(() => planSpriteExport(sprite('a', []), 0)).toThrow()
-  })
-})
-
-describe('buildCodeInput', () => {
-  it('プランと選択中のコスチュームから出力用の入力を作る', () => {
-    const plan = planSpriteExport(sprite('hero', ['a', 'b'], 24), 0)
-    const input = buildCodeInput(plan, 1, 4)
-    expect(input).toMatchObject({
-      spriteName: 'hero',
-      costumeFile: 'hero_b.png',
-      sheetFile: 'hero_sheet.png',
-      frameWidth: 24,
-      frameHeight: 24,
-      frameCount: 2,
-      scale: 4,
-    })
-  })
-
-  it('範囲外のコスチューム番号は先頭にする', () => {
-    const plan = planSpriteExport(sprite('hero', ['a']), 0)
-    expect(buildCodeInput(plan, 9, 1).costumeFile).toBe('hero_a.png')
   })
 })

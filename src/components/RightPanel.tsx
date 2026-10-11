@@ -1,12 +1,10 @@
 import { useState } from 'react'
-import { CodePanel } from './CodePanel'
 import { LayersPanel } from './LayersPanel'
 import { SheetPanel } from './SheetPanel'
 
 const TABS = [
   { id: 'layers', label: 'レイヤー' },
   { id: 'sheet', label: 'シート' },
-  { id: 'code', label: 'pygameコード' },
 ] as const
 
 type TabId = (typeof TABS)[number]['id']
@@ -30,7 +28,6 @@ export function RightPanel() {
       </div>
       {tab === 'layers' && <LayersPanel />}
       {tab === 'sheet' && <SheetPanel />}
-      {tab === 'code' && <CodePanel />}
     </aside>
   )
 }

@@ -1,6 +1,5 @@
 import type { SheetSettings, Sprite } from '../../domain/types'
 import { toSafeName, uniqueNames } from '../naming'
-import type { CodeInput } from './pygameCode'
 import {
   computeSheetLayout,
   DEFAULT_SHEET,
@@ -31,26 +30,5 @@ export function planSpriteExport(
     sheetFile: `${spriteName}_sheet.png`,
     settings,
     layout: computeSheetLayout(sprite.costumes, settings),
-  }
-}
-
-export function buildCodeInput(
-  plan: SpriteExportPlan,
-  costumeIndex: number,
-  scale: number,
-): CodeInput {
-  const { layout, settings } = plan
-  return {
-    spriteName: plan.spriteName,
-    costumeFile:
-      plan.costumeFiles[costumeIndex] ?? (plan.costumeFiles[0] as string),
-    sheetFile: plan.sheetFile,
-    frameWidth: layout.frameWidth,
-    frameHeight: layout.frameHeight,
-    frameCount: layout.frames.length,
-    columns: layout.columns,
-    padding: layout.padding,
-    fps: settings.fps,
-    scale,
   }
 }

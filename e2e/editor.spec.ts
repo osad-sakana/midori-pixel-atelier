@@ -71,18 +71,6 @@ test('レイヤーを追加・非表示にできる', async ({ page }) => {
   expect((await pixelAt(page, 5, 2))[3]).toBe(255)
 })
 
-test('pygame のコードが出力される', async ({ page }) => {
-  await page.getByRole('tab', { name: 'pygameコード' }).click()
-  await expect(page.getByLabel('pygame のコード')).toContainText(
-    'pygame.image.load',
-  )
-  await expect(page.getByLabel('pygame のコード')).toContainText(
-    'sprite1_costume1.png',
-  )
-  await page.getByRole('radio', { name: 'シートでアニメ' }).click()
-  await expect(page.getByLabel('pygame のコード')).toContainText('subsurface')
-})
-
 test('コスチュームを追加するとシートが2枚になる', async ({ page }) => {
   await page.getByRole('button', { name: '＋ 空のコスチューム' }).click()
   await page.getByRole('tab', { name: 'シート' }).click()

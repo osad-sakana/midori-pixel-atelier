@@ -170,7 +170,7 @@ export function SheetPanel() {
         <button
           type="button"
           className="primary"
-          onClick={() => void downloadSpriteBundle(1)}
+          onClick={() => void downloadSpriteBundle()}
         >
           素材セット（ZIP）をダウンロード
         </button>
@@ -182,8 +182,7 @@ export function SheetPanel() {
         </button>
       </div>
       <p className="hint">
-        素材セットには、各コスチュームのPNG・シートPNG・動かせる main.py
-        が入っています。
+        素材セットには、各コスチュームのPNGとシートPNGが入っています。
       </p>
 
       <h3>シート画像から切り出す</h3>
