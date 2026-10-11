@@ -87,6 +87,7 @@ function drawOverlay(
 export function EditorCanvas() {
   const mainRef = useRef<HTMLCanvasElement>(null)
   const overlayRef = useRef<HTMLCanvasElement>(null)
+  const activePointer = useRef<number | null>(null)
   const [cursor, setCursor] = useState<{ x: number; y: number } | null>(null)
 
   const costumeId = useEditor((s) => s.costumeId)
@@ -168,16 +169,32 @@ export function EditorCanvas() {
             aria-label="描画キャンバス"
             style={{ width: width * zoom, height: height * zoom }}
             onPointerDown={(e) => {
+              // 最初の1本のポインタだけを扱う（指と手のひら、ペンとマウスの併用対策）
+              if (activePointer.current !== null) return
+              activePointer.current = e.pointerId
               e.currentTarget.setPointerCapture(e.pointerId)
               pointerDown(toPixel(e), Math.max(1, Math.ceil(HANDLE_PX / zoom)))
             }}
             onPointerMove={(e) => {
               const p = toPixel(e)
               setCursor(p)
-              pointerMove(p)
+              if (
+                activePointer.current === null ||
+                activePointer.current === e.pointerId
+              ) {
+                pointerMove(p)
+              }
             }}
-            onPointerUp={pointerUp}
-            onPointerCancel={pointerUp}
+            onPointerUp={(e) => {
+              if (activePointer.current !== e.pointerId) return
+              activePointer.current = null
+              pointerUp()
+            }}
+            onPointerCancel={(e) => {
+              if (activePointer.current !== e.pointerId) return
+              activePointer.current = null
+              pointerUp()
+            }}
             onPointerLeave={() => setCursor(null)}
           />
         </div>

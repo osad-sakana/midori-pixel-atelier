@@ -5,6 +5,8 @@ import {
   bitmaps,
   getActive,
   newProject,
+  redo,
+  resizeCostume,
   setTool,
   setToolOptions,
   undo,
@@ -161,5 +163,42 @@ describe('レイヤー切り替え', () => {
     expect(state().layerId).not.toBe(firstLayer)
     const first = getActive().costume.layers.find((l) => l.id === firstLayer)!
     expect(getPixel(bitmaps.get(first.assetId)!, 3, 3)).toEqual(RED)
+  })
+})
+
+describe('操作の割り込み', () => {
+  it('ストローク中の undo は、その描画を取り消すだけで履歴を壊さない', () => {
+    resizeCostume(40, 40)
+    pointerDown({ x: 1, y: 1 }, 1)
+    undo()
+    pointerMove({ x: 5, y: 1 })
+    pointerUp()
+    expect(px(3, 1)).toEqual([0, 0, 0, 0])
+    const bmp = bitmaps.get(getActive().layer.assetId)!
+    expect([bmp.width, bmp.height]).toEqual([40, 40])
+    expect([getActive().costume.width, getActive().costume.height]).toEqual([
+      40, 40,
+    ])
+    expect(state().canUndo).toBe(true)
+  })
+
+  it('ストローク中の redo も何も壊さない', () => {
+    drag([1, 1], [2, 1])
+    undo()
+    pointerDown({ x: 5, y: 5 }, 1)
+    redo()
+    pointerUp()
+    expect(state().canUndo).toBe(false)
+    expect(px(1, 1)).toEqual([0, 0, 0, 0])
+  })
+
+  it('2本目のポインタ（マルチタッチ）は無視される', () => {
+    pointerDown({ x: 0, y: 0 }, 1)
+    pointerDown({ x: 10, y: 10 }, 1)
+    pointerUp()
+    pointerUp()
+    expect(px(10, 10)).toEqual([0, 0, 0, 0])
+    undo()
+    expect(px(0, 0)).toEqual([0, 0, 0, 0])
   })
 })

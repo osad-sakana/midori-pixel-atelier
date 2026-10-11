@@ -89,4 +89,8 @@ describe('BitmapStore', () => {
     expect(store.get('a')).toBeUndefined()
     expect(store.get('b')).toBeUndefined()
   })
+
+  it('存在しない assetId の revision は -1', () => {
+    expect(createBitmapStore().revision('nope')).toBe(-1)
+  })
 })

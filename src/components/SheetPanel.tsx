@@ -10,6 +10,7 @@ import { planSpriteExport } from '../lib/export/exportPlan'
 import { drawBitmap } from '../platform/browser'
 import { getActive, updateSheet, useEditor } from '../state/editorStore'
 import { BitmapCanvas } from './BitmapCanvas'
+import { costumesKey } from './useComposed'
 
 function AnimationPreview(props: {
   sheetCanvas: HTMLCanvasElement | null
@@ -65,7 +66,8 @@ function AnimationPreview(props: {
 export function SheetPanel() {
   const project = useEditor((s) => s.project)
   const spriteId = useEditor((s) => s.spriteId)
-  const revision = useEditor((s) => s.revision)
+  // 画像が変わるたびに再描画する（シートの再合成は下の key が変わったときだけ）
+  useEditor((s) => s.revision)
   const costume = useEditor((s) => getActive(s).costume)
   const sprite = project.sprites.find((s) => s.id === spriteId)
   const index = project.sprites.findIndex((s) => s.id === spriteId)
@@ -79,9 +81,9 @@ export function SheetPanel() {
   )
   const sheet = useMemo(
     () => (plan ? buildSheet() : undefined),
-    // 画像の変更（revision）で作り直す
+    // key はこのスプライトの画像の変更を知らせるためだけに依存させる
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [plan, revision],
+    [plan, costumesKey(sprite?.costumes ?? [])],
   )
 
   useEffect(() => {

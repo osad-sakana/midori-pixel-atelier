@@ -54,7 +54,7 @@ export function createBitmapStore(): BitmapStore {
     delete(assetId) {
       if (entries.delete(assetId)) notify()
     },
-    revision: (assetId) => getEntry(assetId).revision,
+    revision: (assetId) => entries.get(assetId)?.revision ?? -1,
     subscribe(listener) {
       listeners.add(listener)
       return () => listeners.delete(listener)

@@ -58,7 +58,13 @@ describe('factory', () => {
 
 describe('parseProject', () => {
   it('createProject の結果をそのまま検証できる', () => {
-    const project = addSprite(createProject('p'), createSprite('s'))
+    const sprite = createSprite('s')
+    const costume = createCostume({ name: 'c', width: 8, height: 8 })
+    const project = addCostume(
+      addSprite(createProject('p'), sprite),
+      sprite.id,
+      costume,
+    )
     expect(parseProject(project)).toEqual(project)
   })
 
@@ -123,5 +129,12 @@ describe('parseProject', () => {
     expect(() => parseProject({ ...createProject('p'), sprites })).toThrow(
       /大きすぎ/,
     )
+  })
+
+  it('スプライトが0個、またはコスチュームが0個のプロジェクトは拒否する', () => {
+    expect(() => parseProject(createProject('p'))).toThrow()
+    expect(() =>
+      parseProject(addSprite(createProject('p'), createSprite('s'))),
+    ).toThrow()
   })
 })

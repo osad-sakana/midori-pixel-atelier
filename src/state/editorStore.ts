@@ -241,7 +241,16 @@ function applyEntry(
   set({ project, floating: null, ...validSelection(project, get()) })
 }
 
+let abortGesture: (() => boolean) | null = null
+
+/** 操作中（ドラッグ中）の描画を取り消す関数を登録する。操作を中断したら true を返す */
+export function registerGestureAbort(fn: () => boolean): void {
+  abortGesture = fn
+}
+
 export function undo(): void {
+  // ドラッグの途中なら、その操作を取り消すだけ（履歴を壊さない）
+  if (abortGesture?.()) return
   if (get().floating) {
     set({ floating: null })
     return
@@ -252,6 +261,9 @@ export function undo(): void {
 }
 
 export function redo(): void {
+  if (abortGesture?.()) return
+  // 未確定のオブジェクトを黙って捨てないよう、確定または破棄するまで redo しない
+  if (get().floating) return
   const entry = history.redo()
   if (entry) applyEntry(entry, 'after')
   syncHistoryFlags()
@@ -306,6 +318,11 @@ export function commitFloating(): void {
   if (!floating) return
   const { layer } = getActive()
   const base = bitmaps.get(layer.assetId)
+  // ロック中/非表示のレイヤーには書き込まず、破棄して理由を知らせる
+  if (!canEditActiveLayer()) {
+    set({ floating: null })
+    return
+  }
   set({ floating: null })
   if (!base) return
   const after = renderFloating(base, floating)
@@ -639,6 +656,7 @@ export function updateLayer(
   layerId: string,
   props: Partial<Pick<Layer, 'name' | 'visible' | 'locked' | 'opacity'>>,
 ): void {
+  commitFloating()
   const { project, spriteId, costumeId } = get()
   commitEdit(
     'レイヤーを変更',
@@ -731,6 +749,8 @@ export function loadProject(
   project: Project,
   loaded: ReadonlyMap<string, Bitmap>,
 ): void {
+  // 不正なプロジェクトで作業中のデータを失わないよう、先に検証してから入れ替える
+  const selection = validSelection(project, {})
   bitmaps.clear()
   for (const [assetId, bitmap] of loaded) bitmaps.replace(assetId, bitmap)
   history.clear()
@@ -738,7 +758,7 @@ export function loadProject(
     project,
     floating: null,
     selectionDraft: null,
-    ...validSelection(project, {}),
+    ...selection,
   })
   syncHistoryFlags()
 }

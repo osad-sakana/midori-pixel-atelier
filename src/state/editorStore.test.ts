@@ -13,6 +13,7 @@ import {
   duplicateCostume,
   editActiveLayer,
   getActive,
+  loadProject,
   newProject,
   redo,
   resizeCostume,
@@ -189,5 +190,50 @@ describe('スプライト', () => {
     expect(state().project.sprites).toHaveLength(1)
     deleteSprite(state().spriteId)
     expect(state().project.sprites).toHaveLength(1)
+  })
+})
+
+describe('レビュー指摘の回帰テスト', () => {
+  const shape: ShapeFloating = {
+    kind: 'shape',
+    shape: 'rect',
+    start: { x: 1, y: 1 },
+    end: { x: 3, y: 3 },
+    color: RED,
+    size: 1,
+    fill: true,
+    brushShape: 'square',
+  }
+
+  it('ロック中のレイヤーには未確定オブジェクトを確定できず、破棄して通知する', () => {
+    updateLayer(getActive().layer.id, { locked: true })
+    setFloating(shape)
+    commitFloating()
+    expect(state().floating).toBeNull()
+    expect(getPixel(activeBitmap(), 2, 2)).toEqual([0, 0, 0, 0])
+    expect(state().message).toMatch(/ロック/)
+  })
+
+  it('レイヤーをロックする前の未確定オブジェクトは、先に確定される', () => {
+    setFloating(shape)
+    updateLayer(getActive().layer.id, { locked: true })
+    expect(getPixel(activeBitmap(), 2, 2)).toEqual(RED)
+  })
+
+  it('未確定オブジェクトがあるとき redo は何もしない（黙って捨てない）', () => {
+    editActiveLayer('点', (d) => setPixel(d, 0, 0, RED))
+    undo()
+    setFloating(shape)
+    redo()
+    expect(state().floating).not.toBeNull()
+    expect(state().canRedo).toBe(true)
+  })
+
+  it('不正なプロジェクトを開こうとしても、いまの作業は失われない', () => {
+    editActiveLayer('点', (d) => setPixel(d, 0, 0, RED))
+    const bad = { ...state().project, sprites: [] }
+    expect(() => loadProject(bad, new Map())).toThrow()
+    expect(getPixel(activeBitmap(), 0, 0)).toEqual(RED)
+    expect(state().canUndo).toBe(true)
   })
 })

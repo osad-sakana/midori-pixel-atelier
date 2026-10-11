@@ -38,7 +38,7 @@ const sheetSchema = z.object({
 const spriteSchema = z.object({
   id: z.string().min(1),
   name: z.string(),
-  costumes: z.array(costumeSchema),
+  costumes: z.array(costumeSchema).min(1),
   sheet: sheetSchema.optional(),
 })
 
@@ -50,7 +50,7 @@ const projectSchema = z
     schemaVersion: z.literal(CURRENT_SCHEMA_VERSION),
     id: z.string().min(1),
     name: z.string(),
-    sprites: z.array(spriteSchema),
+    sprites: z.array(spriteSchema).min(1),
   })
   .refine(
     (project) =>

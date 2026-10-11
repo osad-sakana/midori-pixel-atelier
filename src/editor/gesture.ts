@@ -8,6 +8,7 @@ import {
   commitFloating,
   editActiveLayer,
   endStroke,
+  registerGestureAbort,
   getActive,
   setFloating,
   setSelectionDraft,
@@ -98,6 +99,8 @@ const insideSelection = (p: Point): boolean => {
 
 /** handleRadius: ハンドルをつかめる範囲（画像ピクセル単位。ズームに応じて呼び出し側が決める） */
 export function pointerDown(p: Point, handleRadius = 1): void {
+  // 操作中の2本目のポインタ（マルチタッチなど）は無視する
+  if (session) return
   const { tool, floating } = state()
 
   if (tool === 'eyedropper') {
@@ -212,3 +215,18 @@ export function pointerUp(): void {
     if (area && base) setFloating(createSelection(base, area))
   }
 }
+
+/** 操作中の描画を取り消して中断する。何か中断したら true */
+export function cancelGesture(): boolean {
+  const current = session
+  session = null
+  if (!current) return false
+  if (current.type === 'stroke') {
+    // 途中まで描いた内容を元に戻す（履歴には積まない）
+    bitmaps.replace(current.stroke.assetId, current.stroke.before)
+  }
+  setSelectionDraft(null)
+  return true
+}
+
+registerGestureAbort(cancelGesture)
