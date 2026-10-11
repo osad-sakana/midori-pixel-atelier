@@ -27,4 +27,11 @@ describe('uniqueNames', () => {
   it('重複に連番を付ける', () => {
     expect(uniqueNames(['a', 'a', 'b', 'a'])).toEqual(['a', 'a_2', 'b', 'a_3'])
   })
+
+  it('生成した名前が既存の名前と衝突しない', () => {
+    const result = uniqueNames(['a', 'a', 'a_2'])
+    expect(new Set(result).size).toBe(3)
+    expect(result[0]).toBe('a')
+    expect(result[2]).toBe('a_2')
+  })
 })

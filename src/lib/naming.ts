@@ -47,12 +47,18 @@ export function toSafeName(name: string, fallback: string): string {
   return PYTHON_KEYWORDS.has(safe) ? `${safe}_` : safe
 }
 
-/** 重複した名前に _2, _3 ... を付けて一意にする */
+/** 重複した名前に _2, _3 ... を付けて一意にする（他の名前とも衝突しない番号を選ぶ） */
 export function uniqueNames(names: readonly string[]): string[] {
-  const seen = new Map<string, number>()
+  const reserved = new Set(names)
+  const used = new Set<string>()
   return names.map((name) => {
-    const count = (seen.get(name) ?? 0) + 1
-    seen.set(name, count)
-    return count === 1 ? name : `${name}_${count}`
+    let candidate = name
+    let n = 1
+    while (used.has(candidate) || (n > 1 && reserved.has(candidate))) {
+      n += 1
+      candidate = `${name}_${n}`
+    }
+    used.add(candidate)
+    return candidate
   })
 }
