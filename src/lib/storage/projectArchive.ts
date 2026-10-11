@@ -18,7 +18,10 @@ const PROJECT_FILE = 'project.json'
 const assetPath = (assetId: string): string => `assets/${assetId}.png`
 /** 展開後1ファイルの上限（zip bomb 対策） */
 const MAX_ENTRY_BYTES = 64 * 1024 * 1024
+/** 展開後の合計の上限 */
+const MAX_TOTAL_BYTES = 200 * 1024 * 1024
 const MAX_ENTRIES = 2000
+const ASSET_ENTRY = /^assets\/[A-Za-z0-9_-]{1,64}\.png$/
 
 export type AssetRef = {
   readonly assetId: string
@@ -54,8 +57,12 @@ export async function exportProjectZip(
   return zipSync(files)
 }
 
-function unzip(data: Uint8Array): Record<string, Uint8Array> {
+function unzip(
+  data: Uint8Array,
+  maxTotalBytes: number,
+): Record<string, Uint8Array> {
   let count = 0
+  let total = 0
   try {
     return unzipSync(data, {
       filter: (file) => {
@@ -63,6 +70,11 @@ function unzip(data: Uint8Array): Record<string, Uint8Array> {
         if (count > MAX_ENTRIES || file.originalSize > MAX_ENTRY_BYTES) {
           throw new Error('too large')
         }
+        // 読み込む名前のものだけ展開する（それ以外はメモリに載せない）
+        if (file.name !== PROJECT_FILE && !ASSET_ENTRY.test(file.name))
+          return false
+        total += file.originalSize
+        if (total > maxTotalBytes) throw new Error('too large')
         return true
       },
     })
@@ -76,8 +88,9 @@ function unzip(data: Uint8Array): Record<string, Uint8Array> {
 export async function importProjectZip(
   data: Uint8Array,
   codec: PngCodec,
+  maxTotalBytes = MAX_TOTAL_BYTES,
 ): Promise<LoadedProject> {
-  const entries = unzip(data)
+  const entries = unzip(data, maxTotalBytes)
   const json = entries[PROJECT_FILE]
   if (!json) throw new Error('project.json が見つかりません')
 

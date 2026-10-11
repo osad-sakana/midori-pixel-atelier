@@ -1,4 +1,5 @@
 import type { Bitmap } from '../lib/bitmap/bitmap'
+import { readPngSize } from '../lib/image/pngHeader'
 import type { PngCodec } from '../lib/storage/projectArchive'
 
 /** 読み込める画像の上限（1辺）。巨大画像でブラウザが固まるのを防ぐ */
@@ -30,6 +31,14 @@ export const pngCodec: PngCodec = {
     return new Uint8Array(await blob.arrayBuffer())
   },
   async decode(bytes) {
+    // フルデコードの前に、ヘッダーだけで巨大な PNG を弾く
+    const header = readPngSize(bytes)
+    if (
+      header &&
+      (header.width > MAX_IMPORT_SIZE || header.height > MAX_IMPORT_SIZE)
+    ) {
+      throw new Error(`画像が大きすぎます（1辺 ${MAX_IMPORT_SIZE}px まで）`)
+    }
     let image: ImageBitmap
     try {
       image = await createImageBitmap(new Blob([new Uint8Array(bytes)]))

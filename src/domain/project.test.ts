@@ -90,4 +90,38 @@ describe('parseProject', () => {
     }
     expect(() => parseProject(project)).toThrow(/新しい/)
   })
+
+  it('小数の fps は拒否する', () => {
+    const sprite = {
+      ...createSprite('s'),
+      sheet: { columns: 1, padding: 0, fps: 7.5 },
+    }
+    expect(() =>
+      parseProject({ ...createProject('p'), sprites: [sprite] }),
+    ).toThrow()
+  })
+
+  it('画像の総ピクセル数が上限を超えるプロジェクトは拒否する', () => {
+    const costume = createCostume({ name: 'c', width: 4096, height: 4096 })
+    const sprites = Array.from({ length: 5 }, (_, i) => ({
+      ...createSprite(`s${i}`),
+      costumes: [
+        {
+          ...costume,
+          id: `c${i}`,
+          layers: [
+            costume.layers[0]!,
+            ...Array.from({ length: 3 }, (_, j) => ({
+              ...costume.layers[0]!,
+              id: `l${i}${j}`,
+              assetId: `a${i}${j}`,
+            })),
+          ],
+        },
+      ],
+    }))
+    expect(() => parseProject({ ...createProject('p'), sprites })).toThrow(
+      /大きすぎ/,
+    )
+  })
 })

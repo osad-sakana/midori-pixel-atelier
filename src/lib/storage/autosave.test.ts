@@ -10,7 +10,7 @@ import {
 import { clearAutosave, loadAutosave, saveAutosave } from './autosave'
 import { createBitmapStore } from '../bitmap/bitmapStore'
 import { setPixel } from '../bitmap/draw'
-import { set } from 'idb-keyval'
+import { createStore, set } from 'idb-keyval'
 
 function build() {
   const sprite = createSprite('s')
@@ -45,7 +45,11 @@ describe('autosave', () => {
   })
 
   it('壊れたデータは無視して undefined', async () => {
-    await set('autosave', { project: { broken: true }, assets: [] })
+    await set(
+      'autosave',
+      { project: { broken: true }, assets: [] },
+      createStore('midori-pic-editor', 'autosave'),
+    )
     expect(await loadAutosave()).toBeUndefined()
   })
 
@@ -54,5 +58,27 @@ describe('autosave', () => {
     await saveAutosave(project, (id) => store.get(id))
     await clearAutosave()
     expect(await loadAutosave()).toBeUndefined()
+  })
+
+  it('画像データが型付き配列でなければ空の画像にする', async () => {
+    const { project, store } = build()
+    await saveAutosave(project, (id) => store.get(id))
+    const store2 = createStore('midori-pic-editor', 'autosave')
+    const stored = {
+      project,
+      assets: [
+        {
+          assetId: project.sprites[0]!.costumes[0]!.layers[0]!.assetId,
+          width: 3,
+          height: 3,
+          data: new Array(36).fill(7),
+        },
+      ],
+    }
+    await set('autosave', stored, store2)
+    const loaded = await loadAutosave()
+    const bmp = loaded?.bitmaps.values().next().value
+    expect(bmp?.data).toBeInstanceOf(Uint8ClampedArray)
+    expect(bmp?.data.every((v: number) => v === 0)).toBe(true)
   })
 })

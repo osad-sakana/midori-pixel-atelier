@@ -131,6 +131,6 @@ export const setSheetSettings = (
     sheet: {
       columns: clamp(Math.round(sheet.columns), 1, 256),
       padding: clamp(Math.round(sheet.padding), 0, 64),
-      fps: clamp(sheet.fps, 1, 60),
+      fps: clamp(Math.round(sheet.fps), 1, 60),
     },
   }))

@@ -143,5 +143,11 @@ describe('sprite / costume ops', () => {
       fps: 500,
     })
     expect(next.sprites[0]?.sheet).toEqual({ columns: 1, padding: 0, fps: 60 })
+    const frac = setSheetSettings(project, sprite.id, {
+      columns: 2,
+      padding: 0,
+      fps: 7.6,
+    })
+    expect(frac.sprites[0]?.sheet?.fps).toBe(8)
   })
 })

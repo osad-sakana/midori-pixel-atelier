@@ -32,7 +32,7 @@ const costumeSchema = z.object({
 const sheetSchema = z.object({
   columns: z.number().int().min(1).max(256),
   padding: z.number().int().min(0).max(64),
-  fps: z.number().min(1).max(60),
+  fps: z.number().int().min(1).max(60),
 })
 
 const spriteSchema = z.object({
@@ -42,12 +42,24 @@ const spriteSchema = z.object({
   sheet: sheetSchema.optional(),
 })
 
-const projectSchema = z.object({
-  schemaVersion: z.literal(CURRENT_SCHEMA_VERSION),
-  id: z.string().min(1),
-  name: z.string(),
-  sprites: z.array(spriteSchema),
-})
+/** 画像全体のメモリ上限（RGBA）。悪意ある/壊れたファイルでタブが落ちるのを防ぐ */
+export const MAX_TOTAL_PIXELS = 64 * 1024 * 1024
+
+const projectSchema = z
+  .object({
+    schemaVersion: z.literal(CURRENT_SCHEMA_VERSION),
+    id: z.string().min(1),
+    name: z.string(),
+    sprites: z.array(spriteSchema),
+  })
+  .refine(
+    (project) =>
+      project.sprites
+        .flatMap((s) => s.costumes)
+        .reduce((sum, c) => sum + c.width * c.height * c.layers.length, 0) <=
+      MAX_TOTAL_PIXELS,
+    { message: 'プロジェクトの画像が大きすぎます（合計 6700万ピクセルまで）' },
+  )
 
 /** 外部入力（ファイル/IndexedDB）を、移行 → 検証の順で Project にする */
 export function parseProject(input: unknown): z.infer<typeof projectSchema> {

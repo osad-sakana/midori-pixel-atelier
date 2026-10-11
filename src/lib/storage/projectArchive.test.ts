@@ -1,4 +1,4 @@
-import { strToU8, zipSync } from 'fflate'
+import { strToU8, unzipSync, zipSync } from 'fflate'
 import { describe, expect, it } from 'vitest'
 import {
   addCostume,
@@ -119,5 +119,31 @@ describe('project archive', () => {
     }
     const zip = zipSync({ 'project.json': strToU8(JSON.stringify(evil)) })
     await expect(importProjectZip(zip, fakeCodec)).rejects.toThrow()
+  })
+
+  it('project.json と assets 以外のエントリは展開しない', async () => {
+    const { project, store, assetId } = build()
+    const zip = await exportProjectZip(
+      project,
+      (id) => store.get(id),
+      fakeCodec,
+    )
+    const entries = unzipSync(zip)
+    const withJunk = zipSync({
+      ...entries,
+      'junk/huge.bin': new Uint8Array(10),
+    })
+    const loaded = await importProjectZip(withJunk, fakeCodec)
+    expect(loaded.bitmaps.has(assetId)).toBe(true)
+  })
+
+  it('展開後の合計サイズが上限を超える ZIP は拒否する', async () => {
+    const { project, store } = build()
+    const zip = await exportProjectZip(
+      project,
+      (id) => store.get(id),
+      fakeCodec,
+    )
+    await expect(importProjectZip(zip, fakeCodec, 10)).rejects.toThrow(/ZIP/)
   })
 })

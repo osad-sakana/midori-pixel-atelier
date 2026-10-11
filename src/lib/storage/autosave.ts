@@ -1,10 +1,12 @@
-import { del, get, set } from 'idb-keyval'
+import { createStore, del, get, set } from 'idb-keyval'
 import { parseProject } from '../../domain/schema'
 import type { Project } from '../../domain/types'
 import { createBitmap, type Bitmap } from '../bitmap/bitmap'
 import { listAssets, type LoadedProject } from './projectArchive'
 
 const KEY = 'autosave'
+/** 同じオリジン（<user>.github.io）の他アプリと保存領域が衝突しないよう専用の DB を使う */
+const store = createStore('midori-pic-editor', 'autosave')
 
 type StoredAsset = {
   readonly assetId: string
@@ -37,13 +39,13 @@ export async function saveAutosave(
       : []
   })
   const snapshot: StoredSnapshot = { project, assets }
-  await set(KEY, snapshot)
+  await set(KEY, snapshot, store)
 }
 
 /** 壊れている/読めない場合は undefined（新規プロジェクトで始める） */
 export async function loadAutosave(): Promise<LoadedProject | undefined> {
   try {
-    const stored = (await get(KEY)) as StoredSnapshot | undefined
+    const stored = (await get(KEY, store)) as StoredSnapshot | undefined
     if (!stored) return undefined
     const project = parseProject(stored.project)
     const stash = new Map(stored.assets.map((a) => [a.assetId, a]))
@@ -52,6 +54,7 @@ export async function loadAutosave(): Promise<LoadedProject | undefined> {
       const asset = stash.get(ref.assetId)
       const valid =
         asset &&
+        asset.data instanceof Uint8ClampedArray &&
         asset.width === ref.width &&
         asset.height === ref.height &&
         asset.data.length === ref.width * ref.height * 4
@@ -69,7 +72,7 @@ export async function loadAutosave(): Promise<LoadedProject | undefined> {
 }
 
 export async function clearAutosave(): Promise<void> {
-  await del(KEY)
+  await del(KEY, store)
 }
 
 /** ブラウザに自動削除されにくくするよう依頼する（失敗しても無視） */
