@@ -48,7 +48,7 @@ describe('autosave', () => {
     await set(
       'autosave',
       { project: { broken: true }, assets: [] },
-      createStore('midori-pic-editor', 'autosave'),
+      createStore('midori-pixel-atelier', 'autosave'),
     )
     expect(await loadAutosave()).toBeUndefined()
   })
@@ -63,7 +63,7 @@ describe('autosave', () => {
   it('画像データが型付き配列でなければ空の画像にする', async () => {
     const { project, store } = build()
     await saveAutosave(project, (id) => store.get(id))
-    const store2 = createStore('midori-pic-editor', 'autosave')
+    const store2 = createStore('midori-pixel-atelier', 'autosave')
     const stored = {
       project,
       assets: [

@@ -6,7 +6,7 @@ import { listAssets, type LoadedProject } from './projectArchive'
 
 const KEY = 'autosave'
 /** 同じオリジン（<user>.github.io）の他アプリと保存領域が衝突しないよう専用の DB を使う */
-const store = createStore('midori-pic-editor', 'autosave')
+const store = createStore('midori-pixel-atelier', 'autosave')
 
 type StoredAsset = {
   readonly assetId: string

@@ -1,6 +1,6 @@
 import { z } from 'zod'
 
-const KEY = 'midori-pic-editor:settings'
+const KEY = 'midori-pixel-atelier:settings'
 
 const settingsSchema = z.object({
   color: z.string().regex(/^#[0-9a-fA-F]{6}$/),

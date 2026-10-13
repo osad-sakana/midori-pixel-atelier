@@ -22,10 +22,10 @@ describe('settings', () => {
   })
 
   it('壊れた JSON や不正な値は既定値に戻す', () => {
-    memory.set('midori-pic-editor:settings', '{oops')
+    memory.set('midori-pixel-atelier:settings', '{oops')
     expect(loadSettings()).toEqual(DEFAULT_SETTINGS)
     memory.set(
-      'midori-pic-editor:settings',
+      'midori-pixel-atelier:settings',
       JSON.stringify({ brushSize: -5, color: 'red' }),
     )
     expect(loadSettings()).toEqual(DEFAULT_SETTINGS)
