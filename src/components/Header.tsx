@@ -33,7 +33,7 @@ export function Header() {
         <span className="brand-mark" aria-hidden>
           <Sparkles size={18} strokeWidth={2.2} />
         </span>
-        <h1>pygame素材メーカー</h1>
+        <h1>みどりのピクセルアトリエ</h1>
       </div>
 
       <div className="project-name-wrap">

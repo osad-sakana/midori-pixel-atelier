@@ -33,7 +33,7 @@ async function dragOnCanvas(
 test.beforeEach(async ({ page }) => {
   await page.goto('/')
   await expect(
-    page.getByRole('heading', { name: 'pygame素材メーカー' }),
+    page.getByRole('heading', { name: 'みどりのピクセルアトリエ' }),
   ).toBeVisible()
 })
 
