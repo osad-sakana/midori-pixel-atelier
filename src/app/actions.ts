@@ -1,13 +1,19 @@
-import { zipSync, type Zippable } from 'fflate'
+import { strToU8, zipSync, type Zippable } from 'fflate'
 import { composeCostume } from '../editor/compose'
 import type { Bitmap } from '../lib/bitmap/bitmap'
 import { planSpriteExport } from '../lib/export/exportPlan'
+import {
+  buildPygameExample,
+  exampleFileName,
+} from '../lib/export/pygameExample'
 import { renderSheet, sliceSheet } from '../lib/export/spritesheet'
 import { toSafeName } from '../lib/naming'
 import {
   exportProjectZip,
   importProjectZip,
 } from '../lib/storage/projectArchive'
+import { buildTemplate } from '../templates/build'
+import type { TemplateSpec } from '../templates/types'
 import {
   downloadBytes,
   openFileDialog,
@@ -147,7 +153,7 @@ export const downloadSheetPng = (): Promise<void> =>
     downloadBytes(currentPlan().sheetFile, bytes, 'image/png')
   })
 
-/** 素材セット: 各コスチュームのPNG + シートPNG */
+/** 素材セット: 各コスチュームのPNG + シートPNG + pygame のサンプルコード */
 export const downloadSpriteBundle = (): Promise<void> =>
   guarded(async () => {
     commitFloating()
@@ -158,9 +164,23 @@ export const downloadSpriteBundle = (): Promise<void> =>
       files[file] = [await pngCodec.encode(frames[i] as Bitmap), { level: 0 }]
     }
     files[plan.sheetFile] = [await pngCodec.encode(buildSheet()), { level: 0 }]
+    files[exampleFileName(plan)] = strToU8(buildPygameExample(plan))
     downloadBytes(
       `${plan.spriteName}_assets.zip`,
       zipSync(files),
       'application/zip',
     )
   })
+
+// ---- テンプレート ----
+
+/** いまのプロジェクトをテンプレートで置きかえる（確認は呼ぶ側で行う） */
+export function startFromTemplate(spec: TemplateSpec): void {
+  try {
+    const loaded = buildTemplate(spec)
+    loadProject(loaded.project, loaded.bitmaps)
+    notify(`「${spec.title}」で始めました`)
+  } catch (e) {
+    notify(errorMessage(e))
+  }
+}

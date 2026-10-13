@@ -1,11 +1,4 @@
-import {
-  Download,
-  FilePlus2,
-  FolderOpen,
-  Redo2,
-  Sparkles,
-  Undo2,
-} from 'lucide-react'
+import { Download, FilePlus2, FolderOpen, Redo2, Undo2 } from 'lucide-react'
 import { openProjectFile, saveProjectFile } from '../app/actions'
 import { newProject, redo, rename, undo, useEditor } from '../state/editorStore'
 import { useSaveStatus } from '../state/autosave'
@@ -13,6 +6,7 @@ import { Button } from '../ui/Button'
 import { ConfirmDialog } from '../ui/ConfirmDialog'
 import { IconButton } from '../ui/IconButton'
 import { EditableText } from './EditableText'
+import { TemplateDialog } from './TemplateDialog'
 
 const STATUS_LABEL = {
   idle: 'ブラウザに自動保存されます',
@@ -30,9 +24,11 @@ export function Header() {
   return (
     <header className="app-header">
       <div className="brand">
-        <span className="brand-mark" aria-hidden>
-          <Sparkles size={18} strokeWidth={2.2} />
-        </span>
+        <img
+          className="brand-mark"
+          src={`${import.meta.env.BASE_URL}favicon.svg`}
+          alt=""
+        />
         <h1>みどりのピクセルアトリエ</h1>
       </div>
 
@@ -77,6 +73,7 @@ export function Header() {
           confirmLabel="新しく作る"
           onConfirm={newProject}
         />
+        <TemplateDialog />
         <Button
           variant="ghost"
           icon={FolderOpen}

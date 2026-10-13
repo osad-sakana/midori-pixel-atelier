@@ -115,3 +115,33 @@ test('素材セットをダウンロードできる', async ({ page }) => {
     .click()
   expect((await download).suggestedFilename()).toBe('sprite1_assets.zip')
 })
+
+test('テンプレートから始められる', async ({ page }) => {
+  await page.getByRole('button', { name: 'テンプレート' }).click()
+  const start = page.getByRole('button', { name: 'テンプレートを選んでね' })
+  await expect(start).toBeDisabled()
+
+  await page.getByRole('tab', { name: 'お手本' }).click()
+  await page.getByRole('button', { name: /コイン（くるくる）/ }).click()
+  await page
+    .getByRole('button', { name: /「コイン（くるくる）」で始める/ })
+    .click()
+
+  await expect(
+    page.getByText('「コイン（くるくる）」で始めました'),
+  ).toBeVisible()
+  await expect(page.getByLabel('スプライト coin を選ぶ')).toBeVisible()
+  await expect(page.getByLabel('コスチューム 4')).toBeVisible()
+  // 描き込み済みの絵が出ている（キャンバス中央が不透明）
+  expect((await pixelAt(page, 8, 8))[3]).toBe(255)
+})
+
+test('pygame 用のテンプレートは複数のスプライトを持つ', async ({ page }) => {
+  await page.getByRole('button', { name: 'テンプレート' }).click()
+  await page.getByRole('tab', { name: 'pygame ゲーム用' }).click()
+  await page.getByRole('button', { name: /かんせい版/ }).click()
+  await page.getByRole('button', { name: /で始める/ }).click()
+  for (const name of ['hero', 'coin', 'slime', 'tiles']) {
+    await expect(page.getByLabel(`スプライト ${name} を選ぶ`)).toBeVisible()
+  }
+})

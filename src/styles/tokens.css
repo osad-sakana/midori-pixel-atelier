@@ -1,7 +1,6 @@
 /* デザイントークン。色・余白・角丸・影はここだけで決める */
 :root {
   --font: 'BIZ UDPGothic', 'Hiragino Sans', 'Yu Gothic', system-ui, sans-serif;
-  --font-brand: 'DotGothic16', 'BIZ UDPGothic', 'Hiragino Sans', sans-serif;
   --font-mono: ui-monospace, 'SF Mono', Menlo, monospace;
 
   --bg: #f5f5f5;

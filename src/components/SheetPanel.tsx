@@ -182,7 +182,8 @@ export function SheetPanel() {
           </Button>
         </div>
         <p className="hint">
-          素材セットには、各コスチュームのPNGとシートPNGが入っています。
+          素材セットには、各コスチュームのPNG・シートPNG・pygame
+          で動かせるサンプルコード（.py）が入っています。
         </p>
       </section>
 
