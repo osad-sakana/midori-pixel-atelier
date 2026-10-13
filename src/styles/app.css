@@ -55,10 +55,9 @@
   place-items: center;
   width: 32px;
   height: 32px;
-  border-radius: 10px;
-  color: #fff;
-  background: var(--accent-gradient);
-  box-shadow: 0 4px 12px rgba(99, 102, 241, 0.4);
+  border-radius: var(--radius);
+  color: var(--on-accent);
+  background: var(--accent);
 }
 
 .project-name-wrap {
@@ -214,13 +213,11 @@
 .btn.primary {
   color: var(--on-accent);
   border-color: transparent;
-  background: var(--accent-gradient);
-  box-shadow: 0 2px 10px rgba(99, 102, 241, 0.35);
+  background: var(--accent);
 }
 
 .btn.primary:hover:not(:disabled) {
-  background: var(--accent-gradient);
-  filter: brightness(1.06);
+  background: var(--accent-strong);
 }
 
 .btn.ghost {
@@ -705,8 +702,6 @@
   min-width: 0;
   min-height: 0;
   background-color: var(--stage-bg);
-  background-image: radial-gradient(var(--stage-dot) 1.2px, transparent 1.2px);
-  background-size: 18px 18px;
 }
 
 .canvas-scroll {
@@ -721,10 +716,8 @@
 .canvas-stage {
   position: relative;
   flex: none;
-  border-radius: 4px;
-  box-shadow:
-    0 0 0 1px rgba(28, 32, 51, 0.18),
-    var(--shadow-lg);
+  border-radius: 0;
+  box-shadow: var(--shadow-lg);
   background-color: var(--checker-a);
   background-image:
     linear-gradient(

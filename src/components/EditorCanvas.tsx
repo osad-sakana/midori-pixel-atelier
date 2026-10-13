@@ -64,7 +64,7 @@ function drawOverlay(
     ctx.strokeStyle = '#fff'
     ctx.strokeRect(x * zoom, y * zoom, w * zoom, h * zoom)
     ctx.setLineDash([6, 4])
-    ctx.strokeStyle = '#6366f1'
+    ctx.strokeStyle = '#0d99ff'
     ctx.strokeRect(x * zoom, y * zoom, w * zoom, h * zoom)
     ctx.restore()
   }
@@ -93,7 +93,7 @@ function drawOverlay(
       const cx = (p.x + 0.5) * zoom
       const cy = (p.y + 0.5) * zoom
       ctx.fillStyle = '#fff'
-      ctx.strokeStyle = '#6366f1'
+      ctx.strokeStyle = '#0d99ff'
       ctx.lineWidth = 2
       ctx.fillRect(cx - size / 2, cy - size / 2, size, size)
       ctx.strokeRect(cx - size / 2, cy - size / 2, size, size)
